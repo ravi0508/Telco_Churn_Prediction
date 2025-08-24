@@ -306,6 +306,94 @@ class DataValidator:
             logger.error(f"Failed to validate dataset: {e}")
             raise
     
+    def validate_datasets(self, telco_data: pd.DataFrame, hf_data: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Validate multiple datasets passed as DataFrames.
+        
+        Args:
+            telco_data: Telco customer DataFrame
+            hf_data: Hugging Face DataFrame
+            
+        Returns:
+            Dict: Combined validation results for both datasets
+        """
+        try:
+            logger.info("Starting validation of multiple datasets")
+            
+            combined_results = {
+                'validation_timestamp': datetime.now().isoformat(),
+                'datasets_validated': ['telco', 'hf'],
+                'telco_validation': {},
+                'hf_validation': {},
+                'combined_summary': {}
+            }
+            
+            # Validate telco dataset
+            combined_results['telco_validation'] = self._validate_dataframe(telco_data, 'telco')
+            
+            # Validate HF dataset
+            combined_results['hf_validation'] = self._validate_dataframe(hf_data, 'hf')
+            
+            # Generate combined summary
+            combined_results['combined_summary'] = self._generate_combined_summary(
+                combined_results['telco_validation'], 
+                combined_results['hf_validation']
+            )
+            
+            logger.info("Multi-dataset validation completed successfully")
+            return combined_results
+            
+        except Exception as e:
+            logger.error(f"Failed to validate datasets: {e}")
+            raise
+    
+    def _validate_dataframe(self, df: pd.DataFrame, source: str) -> Dict[str, Any]:
+        """Validate a single DataFrame."""
+        validation_results = {
+            'source': source,
+            'validation_timestamp': datetime.now().isoformat(),
+            'dataset_info': {
+                'shape': df.shape,
+                'columns': df.columns.tolist(),
+                'memory_usage': df.memory_usage(deep=True).sum()
+            }
+        }
+        
+        # Perform all validation checks
+        validation_results['missing_values'] = self.check_missing_values(df, source)
+        validation_results['data_types'] = self.check_data_types(df, source)
+        validation_results['duplicates'] = self.check_duplicates(df, source)
+        validation_results['data_ranges'] = self.check_data_ranges(df, source)
+        validation_results['categorical_values'] = self.check_categorical_values(df, source)
+        
+        # Summary of issues
+        validation_results['summary'] = self._generate_summary(validation_results)
+        
+        return validation_results
+    
+    def _generate_combined_summary(self, telco_results: Dict, hf_results: Dict) -> Dict[str, Any]:
+        """Generate a combined summary from multiple dataset validations."""
+        combined_summary = {
+            'total_datasets': 2,
+            'total_records': telco_results['dataset_info']['shape'][0] + hf_results['dataset_info']['shape'][0],
+            'total_features': telco_results['dataset_info']['shape'][1] + hf_results['dataset_info']['shape'][1],
+            'overall_issues': telco_results['summary']['total_issues'] + hf_results['summary']['total_issues'],
+            'dataset_summaries': {
+                'telco': telco_results['summary'],
+                'hf': hf_results['summary']
+            },
+            'recommendations': []
+        }
+        
+        # Add combined recommendations
+        if combined_summary['overall_issues'] > 0:
+            combined_summary['recommendations'].append("Review individual dataset issues")
+            combined_summary['recommendations'].append("Address missing values and duplicates before modeling")
+        else:
+            combined_summary['recommendations'].append("Datasets appear to be in good quality for modeling")
+        
+        return combined_summary
+    
     def _generate_summary(self, validation_results: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a summary of validation issues."""
         summary = {
