@@ -64,29 +64,79 @@ class DataTransformation:
         
     def load_prepared_data(self) -> pd.DataFrame:
         """
-        Load prepared data from database or CSV.
+        Load prepared data from database or CSV with fallback handling.
         
         Returns:
             pd.DataFrame: Prepared dataset
         """
         try:
-            # Try loading from database first
+            # First, check if database exists and has the prepared_data table
             if DATABASE_PATH.exists():
                 conn = sqlite3.connect(DATABASE_PATH)
-                df = pd.read_sql_query("SELECT * FROM prepared_data", conn)
-                conn.close()
-                logger.info(f"Data loaded from database. Shape: {df.shape}")
-            else:
-                # Fallback to CSV
-                csv_files = list(CLEANED_DATA_DIR.glob("prepared_churn_data_*.csv"))
-                if csv_files:
-                    latest_file = max(csv_files, key=lambda x: x.stat().st_mtime)
-                    df = pd.read_csv(latest_file)
-                    logger.info(f"Data loaded from CSV: {latest_file}. Shape: {df.shape}")
+                
+                # Check if prepared_data table exists
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='prepared_data';")
+                table_exists = cursor.fetchone() is not None
+                
+                if table_exists:
+                    # Try to load from database
+                    try:
+                        df = pd.read_sql_query("SELECT * FROM prepared_data", conn)
+                        conn.close()
+                        logger.info(f"Data loaded from database table. Shape: {df.shape}")
+                        return df
+                    except Exception as db_error:
+                        logger.warning(f"Failed to load from database table: {db_error}")
+                        conn.close()
                 else:
-                    raise FileNotFoundError("No prepared data found")
+                    logger.info("Database exists but prepared_data table not found, checking metadata...")
+                    
+                    # Check metadata table for data location info
+                    try:
+                        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='metadata';")
+                        metadata_exists = cursor.fetchone() is not None
+                        
+                        if metadata_exists:
+                            metadata_df = pd.read_sql_query("SELECT * FROM metadata WHERE table_name='prepared_data' ORDER BY creation_timestamp DESC LIMIT 1", conn)
+                            if not metadata_df.empty and 'data_location' in metadata_df.columns:
+                                data_location = metadata_df['data_location'].iloc[0]
+                                if data_location == 'CSV_FILE_ONLY':
+                                    logger.info("Metadata indicates data is stored in CSV only due to column limits")
+                    except:
+                        pass
+                    
+                    conn.close()
             
-            return df
+            # Fallback to CSV files
+            logger.info("Loading data from CSV files...")
+            csv_files = list(CLEANED_DATA_DIR.glob("prepared_churn_data_*.csv"))
+            
+            if csv_files:
+                # Get the most recent file
+                latest_file = max(csv_files, key=lambda x: x.stat().st_mtime)
+                df = pd.read_csv(latest_file)
+                logger.info(f"Data loaded from CSV: {latest_file}. Shape: {df.shape}")
+                return df
+            else:
+                # Try other CSV files in the cleaned directory
+                other_csv_files = list(CLEANED_DATA_DIR.glob("*.csv"))
+                if other_csv_files:
+                    # Look for telco_clean.csv or features_telco.csv as alternatives
+                    for filename in ['telco_clean.csv', 'features_telco.csv']:
+                        file_path = CLEANED_DATA_DIR / filename
+                        if file_path.exists():
+                            df = pd.read_csv(file_path)
+                            logger.info(f"Data loaded from alternative CSV: {file_path}. Shape: {df.shape}")
+                            return df
+                    
+                    # Use the most recent available CSV
+                    latest_file = max(other_csv_files, key=lambda x: x.stat().st_mtime)
+                    df = pd.read_csv(latest_file)
+                    logger.info(f"Data loaded from available CSV: {latest_file}. Shape: {df.shape}")
+                    return df
+                else:
+                    raise FileNotFoundError("No prepared data found in database or CSV files")
             
         except Exception as e:
             logger.error(f"Failed to load prepared data: {e}")

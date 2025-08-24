@@ -3,7 +3,7 @@
   "data_type": "telco_churn",
   "filename": "telco_churn_data.csv",
   "file_path": "/home/jupyter/DMML/churn_prediction_pipeline/data/raw/kaggle/2025-08-24/telco_churn_data.csv",
-  "storage_timestamp": "2025-08-24T07:38:22.745544",
+  "storage_timestamp": "2025-08-24T13:17:23.734687",
   "data_shape": [
     7043,
     21

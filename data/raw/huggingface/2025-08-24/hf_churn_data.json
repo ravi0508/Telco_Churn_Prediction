@@ -3,7 +3,7 @@
   "data_type": "churn_prediction",
   "filename": "hf_churn_data.csv",
   "file_path": "/home/jupyter/DMML/churn_prediction_pipeline/data/raw/huggingface/2025-08-24/hf_churn_data.csv",
-  "storage_timestamp": "2025-08-24T07:38:22.929437",
+  "storage_timestamp": "2025-08-24T13:17:23.915250",
   "data_shape": [
     7043,
     21

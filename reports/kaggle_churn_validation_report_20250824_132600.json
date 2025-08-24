@@ -1,0 +1,477 @@
+{
+  "source": "kaggle_churn",
+  "file_path": "/home/jupyter/DMML/churn_prediction_pipeline/data/raw/kaggle_churn.csv",
+  "validation_timestamp": "2025-08-24T13:26:00.744018",
+  "dataset_info": {
+    "shape": [
+      7043,
+      21
+    ],
+    "columns": [
+      "customerID",
+      "gender",
+      "SeniorCitizen",
+      "Partner",
+      "Dependents",
+      "tenure",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod",
+      "MonthlyCharges",
+      "TotalCharges",
+      "Churn"
+    ],
+    "memory_usage": "8166475"
+  },
+  "missing_values": {
+    "source": "kaggle_churn",
+    "total_rows": 7043,
+    "total_columns": 21,
+    "missing_values_count": {
+      "customerID": 0,
+      "gender": 0,
+      "SeniorCitizen": 0,
+      "Partner": 0,
+      "Dependents": 0,
+      "tenure": 0,
+      "PhoneService": 0,
+      "MultipleLines": 0,
+      "InternetService": 0,
+      "OnlineSecurity": 0,
+      "OnlineBackup": 0,
+      "DeviceProtection": 0,
+      "TechSupport": 0,
+      "StreamingTV": 0,
+      "StreamingMovies": 0,
+      "Contract": 0,
+      "PaperlessBilling": 0,
+      "PaymentMethod": 0,
+      "MonthlyCharges": 0,
+      "TotalCharges": 0,
+      "Churn": 0
+    },
+    "missing_values_percentage": {
+      "customerID": 0.0,
+      "gender": 0.0,
+      "SeniorCitizen": 0.0,
+      "Partner": 0.0,
+      "Dependents": 0.0,
+      "tenure": 0.0,
+      "PhoneService": 0.0,
+      "MultipleLines": 0.0,
+      "InternetService": 0.0,
+      "OnlineSecurity": 0.0,
+      "OnlineBackup": 0.0,
+      "DeviceProtection": 0.0,
+      "TechSupport": 0.0,
+      "StreamingTV": 0.0,
+      "StreamingMovies": 0.0,
+      "Contract": 0.0,
+      "PaperlessBilling": 0.0,
+      "PaymentMethod": 0.0,
+      "MonthlyCharges": 0.0,
+      "TotalCharges": 0.0,
+      "Churn": 0.0
+    },
+    "columns_with_missing": [],
+    "rows_with_missing": "0",
+    "percentage_rows_with_missing": 0.0
+  },
+  "data_types": {
+    "source": "kaggle_churn",
+    "column_types": {
+      "customerID": "object",
+      "gender": "object",
+      "SeniorCitizen": "int64",
+      "Partner": "object",
+      "Dependents": "object",
+      "tenure": "int64",
+      "PhoneService": "object",
+      "MultipleLines": "object",
+      "InternetService": "object",
+      "OnlineSecurity": "object",
+      "OnlineBackup": "object",
+      "DeviceProtection": "object",
+      "TechSupport": "object",
+      "StreamingTV": "object",
+      "StreamingMovies": "object",
+      "Contract": "object",
+      "PaperlessBilling": "object",
+      "PaymentMethod": "object",
+      "MonthlyCharges": "float64",
+      "TotalCharges": "object",
+      "Churn": "object"
+    },
+    "numeric_columns": [
+      "SeniorCitizen",
+      "tenure",
+      "MonthlyCharges"
+    ],
+    "categorical_columns": [
+      "customerID",
+      "gender",
+      "Partner",
+      "Dependents",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod",
+      "TotalCharges",
+      "Churn"
+    ],
+    "datetime_columns": [],
+    "mixed_type_columns": []
+  },
+  "duplicates": {
+    "source": "kaggle_churn",
+    "total_duplicates": "0",
+    "duplicate_percentage": 0.0,
+    "unique_rows": 7043,
+    "columns_with_all_duplicates": []
+  },
+  "data_ranges": {
+    "source": "kaggle_churn",
+    "numeric_ranges": {
+      "SeniorCitizen": {
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.1621468124378816,
+        "std": 0.3686116056100131,
+        "median": 0.0
+      },
+      "tenure": {
+        "min": 0.0,
+        "max": 72.0,
+        "mean": 32.37114865824223,
+        "std": 24.55948102309446,
+        "median": 29.0
+      },
+      "MonthlyCharges": {
+        "min": 18.25,
+        "max": 118.75,
+        "mean": 64.76169246059918,
+        "std": 30.090047097678493,
+        "median": 70.35
+      }
+    },
+    "negative_values": {
+      "SeniorCitizen": {
+        "count": 0,
+        "percentage": 0.0
+      },
+      "tenure": {
+        "count": 0,
+        "percentage": 0.0
+      },
+      "MonthlyCharges": {
+        "count": 0,
+        "percentage": 0.0
+      }
+    },
+    "zero_values": {
+      "SeniorCitizen": {
+        "count": 5901,
+        "percentage": 83.78531875621185
+      },
+      "tenure": {
+        "count": 11,
+        "percentage": 0.1561834445548772
+      },
+      "MonthlyCharges": {
+        "count": 0,
+        "percentage": 0.0
+      }
+    },
+    "outliers": {
+      "SeniorCitizen": {
+        "count": 1142,
+        "percentage": 16.21468124378816,
+        "lower_bound": 0.0,
+        "upper_bound": 0.0
+      },
+      "tenure": {
+        "count": 0,
+        "percentage": 0.0,
+        "lower_bound": -60.0,
+        "upper_bound": 124.0
+      },
+      "MonthlyCharges": {
+        "count": 0,
+        "percentage": 0.0,
+        "lower_bound": -46.02499999999999,
+        "upper_bound": 171.375
+      }
+    }
+  },
+  "categorical_values": {
+    "source": "kaggle_churn",
+    "categorical_distributions": {
+      "customerID": {
+        "unique_values": 7043,
+        "most_frequent": "3186-AJIEK",
+        "most_frequent_count": 1,
+        "least_frequent": "9763-GRSKD",
+        "least_frequent_count": 1,
+        "top_5_values": {
+          "3186-AJIEK": 1,
+          "7590-VHVEG": 1,
+          "5575-GNVDE": 1,
+          "4501-VCPFK": 1,
+          "6075-SLNIL": 1
+        }
+      },
+      "gender": {
+        "unique_values": 2,
+        "most_frequent": "Male",
+        "most_frequent_count": 3555,
+        "least_frequent": "Female",
+        "least_frequent_count": 3488,
+        "top_5_values": {
+          "Male": 3555,
+          "Female": 3488
+        }
+      },
+      "Partner": {
+        "unique_values": 2,
+        "most_frequent": "No",
+        "most_frequent_count": 3641,
+        "least_frequent": "Yes",
+        "least_frequent_count": 3402,
+        "top_5_values": {
+          "No": 3641,
+          "Yes": 3402
+        }
+      },
+      "Dependents": {
+        "unique_values": 2,
+        "most_frequent": "No",
+        "most_frequent_count": 4933,
+        "least_frequent": "Yes",
+        "least_frequent_count": 2110,
+        "top_5_values": {
+          "No": 4933,
+          "Yes": 2110
+        }
+      },
+      "PhoneService": {
+        "unique_values": 2,
+        "most_frequent": "Yes",
+        "most_frequent_count": 6361,
+        "least_frequent": "No",
+        "least_frequent_count": 682,
+        "top_5_values": {
+          "Yes": 6361,
+          "No": 682
+        }
+      },
+      "MultipleLines": {
+        "unique_values": 3,
+        "most_frequent": "No",
+        "most_frequent_count": 3390,
+        "least_frequent": "No phone service",
+        "least_frequent_count": 682,
+        "top_5_values": {
+          "No": 3390,
+          "Yes": 2971,
+          "No phone service": 682
+        }
+      },
+      "InternetService": {
+        "unique_values": 3,
+        "most_frequent": "Fiber optic",
+        "most_frequent_count": 3096,
+        "least_frequent": "No",
+        "least_frequent_count": 1526,
+        "top_5_values": {
+          "Fiber optic": 3096,
+          "DSL": 2421,
+          "No": 1526
+        }
+      },
+      "OnlineSecurity": {
+        "unique_values": 3,
+        "most_frequent": "No",
+        "most_frequent_count": 3498,
+        "least_frequent": "No internet service",
+        "least_frequent_count": 1526,
+        "top_5_values": {
+          "No": 3498,
+          "Yes": 2019,
+          "No internet service": 1526
+        }
+      },
+      "OnlineBackup": {
+        "unique_values": 3,
+        "most_frequent": "No",
+        "most_frequent_count": 3088,
+        "least_frequent": "No internet service",
+        "least_frequent_count": 1526,
+        "top_5_values": {
+          "No": 3088,
+          "Yes": 2429,
+          "No internet service": 1526
+        }
+      },
+      "DeviceProtection": {
+        "unique_values": 3,
+        "most_frequent": "No",
+        "most_frequent_count": 3095,
+        "least_frequent": "No internet service",
+        "least_frequent_count": 1526,
+        "top_5_values": {
+          "No": 3095,
+          "Yes": 2422,
+          "No internet service": 1526
+        }
+      },
+      "TechSupport": {
+        "unique_values": 3,
+        "most_frequent": "No",
+        "most_frequent_count": 3473,
+        "least_frequent": "No internet service",
+        "least_frequent_count": 1526,
+        "top_5_values": {
+          "No": 3473,
+          "Yes": 2044,
+          "No internet service": 1526
+        }
+      },
+      "StreamingTV": {
+        "unique_values": 3,
+        "most_frequent": "No",
+        "most_frequent_count": 2810,
+        "least_frequent": "No internet service",
+        "least_frequent_count": 1526,
+        "top_5_values": {
+          "No": 2810,
+          "Yes": 2707,
+          "No internet service": 1526
+        }
+      },
+      "StreamingMovies": {
+        "unique_values": 3,
+        "most_frequent": "No",
+        "most_frequent_count": 2785,
+        "least_frequent": "No internet service",
+        "least_frequent_count": 1526,
+        "top_5_values": {
+          "No": 2785,
+          "Yes": 2732,
+          "No internet service": 1526
+        }
+      },
+      "Contract": {
+        "unique_values": 3,
+        "most_frequent": "Month-to-month",
+        "most_frequent_count": 3875,
+        "least_frequent": "One year",
+        "least_frequent_count": 1473,
+        "top_5_values": {
+          "Month-to-month": 3875,
+          "Two year": 1695,
+          "One year": 1473
+        }
+      },
+      "PaperlessBilling": {
+        "unique_values": 2,
+        "most_frequent": "Yes",
+        "most_frequent_count": 4171,
+        "least_frequent": "No",
+        "least_frequent_count": 2872,
+        "top_5_values": {
+          "Yes": 4171,
+          "No": 2872
+        }
+      },
+      "PaymentMethod": {
+        "unique_values": 4,
+        "most_frequent": "Electronic check",
+        "most_frequent_count": 2365,
+        "least_frequent": "Credit card (automatic)",
+        "least_frequent_count": 1522,
+        "top_5_values": {
+          "Electronic check": 2365,
+          "Mailed check": 1612,
+          "Bank transfer (automatic)": 1544,
+          "Credit card (automatic)": 1522
+        }
+      },
+      "TotalCharges": {
+        "unique_values": 6531,
+        "most_frequent": " ",
+        "most_frequent_count": 11,
+        "least_frequent": "197.4",
+        "least_frequent_count": 1,
+        "top_5_values": {
+          " ": 11,
+          "20.2": 11,
+          "19.75": 9,
+          "20.05": 8,
+          "19.9": 8
+        }
+      },
+      "Churn": {
+        "unique_values": 2,
+        "most_frequent": "No",
+        "most_frequent_count": 5174,
+        "least_frequent": "Yes",
+        "least_frequent_count": 1869,
+        "top_5_values": {
+          "No": 5174,
+          "Yes": 1869
+        }
+      }
+    },
+    "high_cardinality_columns": [
+      "customerID",
+      "TotalCharges"
+    ],
+    "low_cardinality_columns": [
+      "gender",
+      "Partner",
+      "Dependents",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod",
+      "Churn"
+    ]
+  },
+  "summary": {
+    "total_issues": 2,
+    "critical_issues": [],
+    "warnings": [
+      "High cardinality columns found: ['customerID', 'TotalCharges']",
+      "High percentage of outliers in: ['SeniorCitizen']"
+    ],
+    "recommendations": [
+      "Consider feature engineering for high cardinality columns",
+      "Investigate and handle outliers appropriately"
+    ]
+  }
+}

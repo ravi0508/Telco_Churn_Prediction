@@ -1,112 +1,113 @@
 #!/usr/bin/env python3
 """
 Sequential Pipeline Runner
-Executes each module step by step with proper error handling
+Executes each module step by step with proper logging and feature validation
 """
 
-import os
-import sys
 import subprocess
-import logging
+import sys
+import time
+import pandas as pd
 from pathlib import Path
-from datetime import datetime
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler('sequential_execution.log')
-    ]
-)
-logger = logging.getLogger(__name__)
 
-def run_module(module_path, module_name, step_number):
-    """Run a single module and handle errors."""
+def run_command(description, command):
+    """Run a command and log the results."""
+    print(f"\n� {description}")
+    print(f"Command: {command}")
+    print("-" * 50)
+    
+    start_time = time.time()
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    end_time = time.time()
+    
+    if result.returncode == 0:
+        print(f"✅ {description} completed successfully in {end_time - start_time:.2f}s")
+        if result.stdout:
+            # Show last few lines of output
+            lines = result.stdout.strip().split('\n')
+            for line in lines[-5:]:
+                print(f"   {line}")
+    else:
+        print(f"❌ {description} failed!")
+        print(f"Error: {result.stderr}")
+        return False
+    
+    return True
+
+def check_feature_count(file_path):
+    """Check the number of features in a dataset."""
     try:
-        logger.info(f"🚀 Step {step_number}: {module_name}")
-        logger.info(f"Running: {module_path}")
-        
-        result = subprocess.run([
-            sys.executable, module_path
-        ], capture_output=True, text=True, timeout=300)  # 5 minute timeout
-        
-        if result.returncode == 0:
-            logger.info(f"✅ Step {step_number} completed successfully")
-            if result.stdout:
-                logger.info(f"Output: {result.stdout[:500]}...")  # First 500 chars
-        else:
-            logger.error(f"❌ Step {step_number} failed with return code {result.returncode}")
-            logger.error(f"Error: {result.stderr}")
-            return False
-            
-        return True
-        
-    except subprocess.TimeoutExpired:
-        logger.error(f"❌ Step {step_number} timed out after 5 minutes")
-        return False
-    except Exception as e:
-        logger.error(f"❌ Step {step_number} failed with exception: {e}")
-        return False
+        if Path(file_path).exists():
+            df = pd.read_csv(file_path, nrows=1)
+            return len(df.columns)
+    except:
+        return 0
+    return 0
 
 def main():
-    """Execute the pipeline sequentially."""
-    start_time = datetime.now()
-    logger.info("🚀 Starting Sequential Pipeline Execution")
-    logger.info("=" * 50)
+    """Run the complete pipeline sequentially."""
+    print("🚀 Starting Sequential ML Pipeline Execution")
+    print("=" * 60)
     
     # Change to pipeline directory
-    pipeline_dir = Path(__file__).parent
+    pipeline_dir = "/home/jupyter/DMML/churn_prediction_pipeline"
+    import os
     os.chdir(pipeline_dir)
     
-    # Define pipeline steps
     steps = [
-        ("Directory_2_Ingestion/ingestion.py", "Data Ingestion", 1),
-        ("Directory_3_RawStorage/storage_integration.py", "Raw Data Storage", 2),
-        ("Directory_4_Validation/validation.py", "Data Validation", 3),
-        ("Directory_5_Preparation/preparation.py", "Data Preparation", 4),
-        ("Directory_6_Transformation/transformation.py", "Data Transformation", 5),
-        ("Directory_7_FeatureStore/feature_store.py", "Feature Store", 6),
-        ("Directory_8_Versioning/versioning.py", "Data Versioning", 7),
-        ("Directory_9_ModelBuilding/model_building.py", "Model Building", 8),
+        ("Stage 1: Data Ingestion", "python3 Directory_2_Ingestion/ingestion.py"),
+        ("Stage 2: Raw Storage", "python3 Directory_3_RawStorage/raw_storage.py"),
+        ("Stage 3: Data Validation", "python3 Directory_4_Validation/validation.py"),
+        ("Stage 4: Data Preparation (Fixed Encoding)", "python3 Directory_5_Preparation/preparation.py"),
+        ("Stage 5: Data Transformation", "python3 Directory_6_Transformation/transformation.py"),
+        ("Stage 6: Feature Store Population", "python3 Directory_7_FeatureStore/feature_store.py"),
+        ("Stage 7: Data Versioning", "python3 Directory_8_Versioning/versioning.py"),
+        ("Stage 8: Model Building", "python3 Directory_9_ModelBuilding/model_building.py"),
     ]
     
-    successful_steps = 0
     failed_steps = []
     
-    # Execute each step
-    for module_path, module_name, step_number in steps:
-        if not Path(module_path).exists():
-            logger.warning(f"⚠️ Module not found: {module_path}, skipping...")
-            continue
+    for step_name, command in steps:
+        if not run_command(step_name, command):
+            failed_steps.append(step_name)
             
-        success = run_module(module_path, module_name, step_number)
+        # Special check after data preparation
+        if "Data Preparation" in step_name:
+            print("\n📊 Checking feature count after preparation...")
+            prep_files = list(Path("Directory_5_Preparation/cleaned").glob("prepared_churn_data_*.csv"))
+            if prep_files:
+                latest_file = max(prep_files, key=lambda x: x.stat().st_mtime)
+                feature_count = check_feature_count(latest_file)
+                if feature_count > 100:
+                    print(f"⚠️  Warning: {feature_count} features detected - may be too many!")
+                else:
+                    print(f"✅ Good: {feature_count} features detected - reasonable count")
         
-        if success:
-            successful_steps += 1
-        else:
-            failed_steps.append((step_number, module_name))
-            
-        logger.info("-" * 30)
+        # Special check after feature store
+        if "Feature Store" in step_name:
+            print("\n📈 Checking feature store status...")
+            # Run feature store again to see the summary
+            result = subprocess.run("python3 Directory_7_FeatureStore/feature_store.py", 
+                                   shell=True, capture_output=True, text=True)
+            if "Number of feature sets:" in result.stdout:
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if "Number of feature sets:" in line or "features," in line:
+                        print(f"   {line}")
     
-    # Summary
-    end_time = datetime.now()
-    duration = end_time - start_time
-    
-    logger.info("🎉 Sequential Pipeline Execution Summary")
-    logger.info("=" * 50)
-    logger.info(f"Total steps: {len(steps)}")
-    logger.info(f"Successful: {successful_steps}")
-    logger.info(f"Failed: {len(failed_steps)}")
-    logger.info(f"Duration: {duration}")
-    
+    print("\n" + "=" * 60)
     if failed_steps:
-        logger.error("❌ Failed steps:")
-        for step_num, step_name in failed_steps:
-            logger.error(f"  - Step {step_num}: {step_name}")
+        print(f"❌ Pipeline completed with {len(failed_steps)} failed steps:")
+        for step in failed_steps:
+            print(f"   - {step}")
     else:
-        logger.info("✅ All steps completed successfully!")
+        print("🎉 Pipeline completed successfully!")
+    
+    print("\n📋 Final Status Check:")
+    print(f"   - Models directory: {len(list(Path('models').glob('*.joblib')))} model files")
+    print(f"   - Reports directory: {len(list(Path('reports').glob('*.xlsx')))} report files")
+    print(f"   - Logs: {Path('logs/main_pipeline.log').exists()}")
 
 if __name__ == "__main__":
     main()

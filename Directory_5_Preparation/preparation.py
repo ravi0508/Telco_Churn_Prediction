@@ -38,8 +38,8 @@ class DataPreparation:
     
     def __init__(self):
         self.scaler = StandardScaler()
-        self.label_encoders = {}
         self.imputers = {}
+        self.encoders = {}
         
     def load_kaggle_data(self) -> pd.DataFrame:
         """
@@ -233,6 +233,14 @@ class DataPreparation:
         """
         try:
             df_encoded = df.copy()
+            
+            # Drop identifier columns that shouldn't be encoded
+            identifier_cols = ['customerID']  # Add other ID columns if they exist
+            columns_to_drop = [col for col in identifier_cols if col in df_encoded.columns]
+            if columns_to_drop:
+                df_encoded = df_encoded.drop(columns=columns_to_drop)
+                logger.info(f"Dropped identifier columns: {columns_to_drop}")
+            
             categorical_cols = df_encoded.select_dtypes(include=['object']).columns
             
             # Binary encoding for Yes/No columns
@@ -245,13 +253,32 @@ class DataPreparation:
             
             logger.info(f"Binary encoded columns: {binary_cols}")
             
-            # One-hot encoding for other categorical columns
+            # One-hot encoding for other categorical columns (excluding high cardinality)
             remaining_categorical = [col for col in categorical_cols if col not in binary_cols]
             
-            if remaining_categorical:
-                # Use get_dummies for one-hot encoding
-                df_encoded = pd.get_dummies(df_encoded, columns=remaining_categorical, drop_first=True)
-                logger.info(f"One-hot encoded columns: {remaining_categorical}")
+            # Filter out high cardinality categorical columns (more than 50 unique values)
+            high_cardinality_cols = []
+            low_cardinality_cols = []
+            
+            for col in remaining_categorical:
+                unique_count = df_encoded[col].nunique()
+                if unique_count > 50:  # Threshold to prevent feature explosion
+                    high_cardinality_cols.append(col)
+                    # For high cardinality columns, use label encoding instead
+                    from sklearn.preprocessing import LabelEncoder
+                    le = LabelEncoder()
+                    df_encoded[col] = le.fit_transform(df_encoded[col].astype(str))
+                    self.encoders[col] = le
+                else:
+                    low_cardinality_cols.append(col)
+            
+            if high_cardinality_cols:
+                logger.info(f"Label encoded high cardinality columns: {high_cardinality_cols}")
+            
+            if low_cardinality_cols:
+                # Use get_dummies for one-hot encoding only for low cardinality columns
+                df_encoded = pd.get_dummies(df_encoded, columns=low_cardinality_cols, drop_first=True)
+                logger.info(f"One-hot encoded columns: {low_cardinality_cols}")
             
             logger.info(f"Final dataset shape after encoding: {df_encoded.shape}")
             return df_encoded
@@ -330,9 +357,9 @@ class DataPreparation:
             logger.error(f"Data preparation pipeline failed: {e}")
             raise
     
-    def save_to_database(self, df: pd.DataFrame, table_name: str = 'prepared_data') -> str:
+    def save_to_database(self, df: pd.DataFrame, table_name: str = "prepared_data") -> str:
         """
-        Save prepared data to SQLite database.
+        Save prepared data to SQLite database with column limit handling.
         
         Args:
             df: Prepared dataframe
@@ -342,29 +369,117 @@ class DataPreparation:
             str: Path to the database file
         """
         try:
+            # Check SQLite column limit (2000 columns max)
+            sqlite_column_limit = 2000
+            
             # Create database connection
             conn = sqlite3.connect(DATABASE_PATH)
             
-            # Save dataframe to database
-            df.to_sql(table_name, conn, if_exists='replace', index=False)
+            if len(df.columns) > sqlite_column_limit:
+                logger.warning(f"Dataset has {len(df.columns)} columns, exceeding SQLite limit of {sqlite_column_limit}")
+                logger.info("Saving only metadata to database, full data saved to CSV only")
+                
+                # Check if metadata table exists and get its schema
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='metadata';")
+                table_exists = cursor.fetchone() is not None
+                
+                if table_exists:
+                    # Get existing columns
+                    cursor.execute("PRAGMA table_info(metadata);")
+                    existing_columns = [row[1] for row in cursor.fetchall()]
+                    
+                    # Use compatible metadata structure
+                    if 'columns_sample' in existing_columns:
+                        metadata = {
+                            'table_name': [table_name],
+                            'creation_timestamp': [datetime.now().isoformat()],
+                            'row_count': [len(df)],
+                            'column_count': [len(df.columns)],
+                            'columns_sample': [','.join(df.columns.tolist()[:100])],
+                            'data_location': ['CSV_FILE_ONLY'],
+                            'reason': ['TOO_MANY_COLUMNS_FOR_SQLITE']
+                        }
+                    else:
+                        # Use original schema
+                        metadata = {
+                            'table_name': [table_name],
+                            'creation_timestamp': [datetime.now().isoformat()],
+                            'row_count': [len(df)],
+                            'column_count': [len(df.columns)],
+                            'columns': [','.join(df.columns.tolist()[:100])]  # Truncated to fit
+                        }
+                else:
+                    # Create new table with extended schema
+                    metadata = {
+                        'table_name': [table_name],
+                        'creation_timestamp': [datetime.now().isoformat()],
+                        'row_count': [len(df)],
+                        'column_count': [len(df.columns)],
+                        'columns_sample': [','.join(df.columns.tolist()[:100])],
+                        'data_location': ['CSV_FILE_ONLY'],
+                        'reason': ['TOO_MANY_COLUMNS_FOR_SQLITE']
+                    }
+                
+                metadata_df = pd.DataFrame(metadata)
+                metadata_df.to_sql('metadata', conn, if_exists='append', index=False)
+                
+                conn.close()
+                
+                logger.info(f"Metadata saved to database: {DATABASE_PATH}")
+                logger.info(f"Full dataset must be accessed via CSV files due to column limit")
+                return str(DATABASE_PATH)
             
-            # Create metadata table
-            metadata = {
-                'table_name': [table_name],
-                'creation_timestamp': [datetime.now().isoformat()],
-                'row_count': [len(df)],
-                'column_count': [len(df.columns)],
-                'columns': [','.join(df.columns.tolist())]
-            }
-            
-            metadata_df = pd.DataFrame(metadata)
-            metadata_df.to_sql('metadata', conn, if_exists='append', index=False)
-            
-            conn.close()
-            
-            logger.info(f"Data saved to database: {DATABASE_PATH}, table: {table_name}")
-            return str(DATABASE_PATH)
-            
+            else:
+                # Normal database saving for datasets within column limit
+                # Save dataframe to database
+                df.to_sql(table_name, conn, if_exists='replace', index=False)
+                
+                # Create metadata table with compatible schema
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='metadata';")
+                table_exists = cursor.fetchone() is not None
+                
+                if table_exists:
+                    # Get existing columns
+                    cursor.execute("PRAGMA table_info(metadata);")
+                    existing_columns = [row[1] for row in cursor.fetchall()]
+                    
+                    if 'columns_sample' in existing_columns:
+                        metadata = {
+                            'table_name': [table_name],
+                            'creation_timestamp': [datetime.now().isoformat()],
+                            'row_count': [len(df)],
+                            'column_count': [len(df.columns)],
+                            'columns_sample': [','.join(df.columns.tolist())],
+                            'data_location': ['SQLITE_DATABASE'],
+                            'reason': ['NORMAL_STORAGE']
+                        }
+                    else:
+                        metadata = {
+                            'table_name': [table_name],
+                            'creation_timestamp': [datetime.now().isoformat()],
+                            'row_count': [len(df)],
+                            'column_count': [len(df.columns)],
+                            'columns': [','.join(df.columns.tolist())]
+                        }
+                else:
+                    metadata = {
+                        'table_name': [table_name],
+                        'creation_timestamp': [datetime.now().isoformat()],
+                        'row_count': [len(df)],
+                        'column_count': [len(df.columns)],
+                        'columns': [','.join(df.columns.tolist())]
+                    }
+                
+                metadata_df = pd.DataFrame(metadata)
+                metadata_df.to_sql('metadata', conn, if_exists='append', index=False)
+                
+                conn.close()
+                
+                logger.info(f"Data saved to database: {DATABASE_PATH}, table: {table_name}")
+                return str(DATABASE_PATH)
+                
         except Exception as e:
             logger.error(f"Failed to save data to database: {e}")
             raise

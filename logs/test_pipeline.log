@@ -1,0 +1,3 @@
+2025-08-24 12:53:16,874 - test_pipeline - INFO - This is a test log entry
+2025-08-24 12:53:16,880 - test_pipeline - INFO - Logs will be written to: logs/test_pipeline.log
+2025-08-24 12:53:16,884 - test_pipeline - INFO - Pipeline logging is working correctly

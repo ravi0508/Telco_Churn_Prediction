@@ -1,0 +1,70 @@
+{
+  "tenure_features": {
+    "created_features": [
+      "tenure_years",
+      "tenure_squared",
+      "tenure_log",
+      "tenure_0-1_year",
+      "tenure_1-2_years",
+      "tenure_2-4_years",
+      "tenure_4-6_years",
+      "tenure_6+_years"
+    ],
+    "description": "Tenure-based engineered features including categories and transformations"
+  },
+  "financial_features": {
+    "created_features": [
+      "avg_monthly_charges",
+      "total_to_monthly_ratio",
+      "monthly_charges_Low",
+      "monthly_charges_Medium",
+      "monthly_charges_High",
+      "monthly_charges_Very_High",
+      "total_charges_Low",
+      "total_charges_Medium",
+      "total_charges_High",
+      "total_charges_Very_High"
+    ],
+    "description": "Financial features including ratios and charge categories"
+  },
+  "service_features": {
+    "created_features": [
+      "total_services",
+      "service_density",
+      "has_premium_services"
+    ],
+    "description": "Service-based features including service counts and premium indicators",
+    "service_columns_used": [
+      "PhoneService",
+      "MultipleLines_No phone service",
+      "InternetService_Fiber optic",
+      "InternetService_No",
+      "OnlineSecurity_No internet service",
+      "OnlineSecurity_Yes",
+      "OnlineBackup_No internet service",
+      "OnlineBackup_Yes",
+      "DeviceProtection_No internet service",
+      "DeviceProtection_Yes",
+      "TechSupport_No internet service",
+      "TechSupport_Yes",
+      "StreamingTV_No internet service",
+      "StreamingTV_Yes",
+      "StreamingMovies_No internet service",
+      "StreamingMovies_Yes"
+    ]
+  },
+  "interaction_features": {
+    "created_features": [
+      "tenure_monthly_interaction",
+      "Contract_One year_PaymentMethod_Credit card (automatic)_interaction",
+      "Contract_One year_PaymentMethod_Electronic check_interaction",
+      "Contract_One year_PaymentMethod_Mailed check_interaction",
+      "Contract_Two year_PaymentMethod_Credit card (automatic)_interaction",
+      "Contract_Two year_PaymentMethod_Electronic check_interaction",
+      "Contract_Two year_PaymentMethod_Mailed check_interaction",
+      "senior_service_interaction"
+    ],
+    "description": "Interaction features between key variables"
+  },
+  "transformation_timestamp": "2025-08-24T13:40:10.769477"
+}
