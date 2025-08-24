@@ -508,6 +508,10 @@ class ModelBuilder:
             # Generate report
             report_path = self.generate_model_report(X_test, y_test)
             
+            # Store instance variables for main function access
+            self.report_path = report_path
+            self.data_shape = X.shape if features is not None else df.shape
+            
             # Track with MLflow
             self.track_with_mlflow(X_train, y_train)
             
@@ -553,20 +557,24 @@ def main():
     """Main function to run model building."""
     try:
         model_builder = ModelBuilder()
-        results = model_builder.build_and_evaluate_models()
+        best_model_name, best_model_metrics = model_builder.build_and_evaluate_models()
         
         print("Model Building Completed Successfully!")
-        print(f"\nBest Model: {results['best_model']['name']}")
+        print(f"\nBest Model: {best_model_name}")
         print("Best Model Metrics:")
-        for metric, value in results['best_model']['metrics'].items():
+        for metric, value in best_model_metrics.items():
             print(f"  {metric}: {value:.4f}")
         
         print(f"\nModels saved to: {MODELS_DIR}")
-        print(f"Report generated: {results['report_path']}")
         
-        print(f"\nDataset Info:")
-        print(f"  Shape: {results['data_shape']}")
-        print(f"  Features: {results['feature_count']}")
+        # Get additional info from the model builder instance
+        if hasattr(model_builder, 'report_path') and model_builder.report_path:
+            print(f"Report generated: {model_builder.report_path}")
+        
+        if hasattr(model_builder, 'data_shape') and model_builder.data_shape:
+            print(f"\nDataset Info:")
+            print(f"  Shape: {model_builder.data_shape}")
+            print(f"  Features: {model_builder.data_shape[1] if len(model_builder.data_shape) > 1 else 'N/A'}")
         
     except Exception as e:
         logger.error(f"Model building failed: {e}")

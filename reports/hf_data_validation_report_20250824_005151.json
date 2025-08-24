@@ -1,0 +1,252 @@
+{
+  "source": "hf_data",
+  "file_path": "/home/jupyter/DMML/churn_prediction_pipeline/data/raw/hf_data.csv",
+  "validation_timestamp": "2025-08-24T00:51:51.611108",
+  "dataset_info": {
+    "shape": [
+      500,
+      8
+    ],
+    "columns": [
+      "customer_id",
+      "satisfaction_score",
+      "usage_frequency",
+      "support_calls",
+      "feature_usage",
+      "last_interaction_days",
+      "product_category",
+      "churn_risk"
+    ],
+    "memory_usage": "140645"
+  },
+  "missing_values": {
+    "source": "hf_data",
+    "total_rows": 500,
+    "total_columns": 8,
+    "missing_values_count": {
+      "customer_id": 0,
+      "satisfaction_score": 0,
+      "usage_frequency": 0,
+      "support_calls": 0,
+      "feature_usage": 0,
+      "last_interaction_days": 0,
+      "product_category": 0,
+      "churn_risk": 0
+    },
+    "missing_values_percentage": {
+      "customer_id": 0.0,
+      "satisfaction_score": 0.0,
+      "usage_frequency": 0.0,
+      "support_calls": 0.0,
+      "feature_usage": 0.0,
+      "last_interaction_days": 0.0,
+      "product_category": 0.0,
+      "churn_risk": 0.0
+    },
+    "columns_with_missing": [],
+    "rows_with_missing": "0",
+    "percentage_rows_with_missing": 0.0
+  },
+  "data_types": {
+    "source": "hf_data",
+    "column_types": {
+      "customer_id": "object",
+      "satisfaction_score": "float64",
+      "usage_frequency": "object",
+      "support_calls": "int64",
+      "feature_usage": "float64",
+      "last_interaction_days": "int64",
+      "product_category": "object",
+      "churn_risk": "object"
+    },
+    "numeric_columns": [
+      "satisfaction_score",
+      "support_calls",
+      "feature_usage",
+      "last_interaction_days"
+    ],
+    "categorical_columns": [
+      "customer_id",
+      "usage_frequency",
+      "product_category",
+      "churn_risk"
+    ],
+    "datetime_columns": [],
+    "mixed_type_columns": []
+  },
+  "duplicates": {
+    "source": "hf_data",
+    "total_duplicates": "0",
+    "duplicate_percentage": 0.0,
+    "unique_rows": 500,
+    "columns_with_all_duplicates": []
+  },
+  "data_ranges": {
+    "source": "hf_data",
+    "numeric_ranges": {
+      "satisfaction_score": {
+        "min": 1.0003275504546707,
+        "max": 4.99567362389119,
+        "mean": 2.9777495288744467,
+        "std": 1.1451842862387516,
+        "median": 2.9236418907186463
+      },
+      "support_calls": {
+        "min": 0.0,
+        "max": 9.0,
+        "mean": 4.484,
+        "std": 2.8702300327468118,
+        "median": 4.0
+      },
+      "feature_usage": {
+        "min": 0.0061399296325266,
+        "max": 0.9966711741784792,
+        "mean": 0.4903817971434315,
+        "std": 0.2968829201721474,
+        "median": 0.47881456409980744
+      },
+      "last_interaction_days": {
+        "min": 1.0,
+        "max": 363.0,
+        "mean": 183.22,
+        "std": 100.94818806371262,
+        "median": 183.0
+      }
+    },
+    "negative_values": {
+      "satisfaction_score": {
+        "count": 0,
+        "percentage": 0.0
+      },
+      "support_calls": {
+        "count": 0,
+        "percentage": 0.0
+      },
+      "feature_usage": {
+        "count": 0,
+        "percentage": 0.0
+      },
+      "last_interaction_days": {
+        "count": 0,
+        "percentage": 0.0
+      }
+    },
+    "zero_values": {
+      "satisfaction_score": {
+        "count": 0,
+        "percentage": 0.0
+      },
+      "support_calls": {
+        "count": 48,
+        "percentage": 9.6
+      },
+      "feature_usage": {
+        "count": 0,
+        "percentage": 0.0
+      },
+      "last_interaction_days": {
+        "count": 0,
+        "percentage": 0.0
+      }
+    },
+    "outliers": {
+      "satisfaction_score": {
+        "count": 0,
+        "percentage": 0.0,
+        "lower_bound": -0.8023974914879726,
+        "upper_bound": 6.7505939476874754
+      },
+      "support_calls": {
+        "count": 0,
+        "percentage": 0.0,
+        "lower_bound": -5.5,
+        "upper_bound": 14.5
+      },
+      "feature_usage": {
+        "count": 0,
+        "percentage": 0.0,
+        "lower_bound": -0.5694509131837715,
+        "upper_bound": 1.558134695406617
+      },
+      "last_interaction_days": {
+        "count": 0,
+        "percentage": 0.0,
+        "lower_bound": -151.375,
+        "upper_bound": 521.625
+      }
+    }
+  },
+  "categorical_values": {
+    "source": "hf_data",
+    "categorical_distributions": {
+      "customer_id": {
+        "unique_values": 500,
+        "most_frequent": "H0499",
+        "most_frequent_count": 1,
+        "least_frequent": "H0027",
+        "least_frequent_count": 1,
+        "top_5_values": {
+          "H0499": 1,
+          "H0000": 1,
+          "H0001": 1,
+          "H0002": 1,
+          "H0003": 1
+        }
+      },
+      "usage_frequency": {
+        "unique_values": 3,
+        "most_frequent": "Low",
+        "most_frequent_count": 182,
+        "least_frequent": "High",
+        "least_frequent_count": 155,
+        "top_5_values": {
+          "Low": 182,
+          "Medium": 163,
+          "High": 155
+        }
+      },
+      "product_category": {
+        "unique_values": 3,
+        "most_frequent": "Enterprise",
+        "most_frequent_count": 178,
+        "least_frequent": "Basic",
+        "least_frequent_count": 160,
+        "top_5_values": {
+          "Enterprise": 178,
+          "Premium": 162,
+          "Basic": 160
+        }
+      },
+      "churn_risk": {
+        "unique_values": 3,
+        "most_frequent": "High",
+        "most_frequent_count": 194,
+        "least_frequent": "Low",
+        "least_frequent_count": 151,
+        "top_5_values": {
+          "High": 194,
+          "Medium": 155,
+          "Low": 151
+        }
+      }
+    },
+    "high_cardinality_columns": [
+      "customer_id"
+    ],
+    "low_cardinality_columns": [
+      "usage_frequency",
+      "product_category",
+      "churn_risk"
+    ]
+  },
+  "summary": {
+    "total_issues": 1,
+    "critical_issues": [],
+    "warnings": [
+      "High cardinality columns found: ['customer_id']"
+    ],
+    "recommendations": [
+      "Consider feature engineering for high cardinality columns"
+    ]
+  }
+}
