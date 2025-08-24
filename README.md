@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # End-to-End Data Management Pipeline for Machine Learning
 ## Customer Churn Prediction
 
@@ -367,3 +368,7 @@ airflow dags trigger churn_prediction_pipeline
 This pipeline is developed for educational purposes as part of the Data Management for Machine Learning course.
 
 **Note**: This implementation demonstrates industry best practices for ML data pipelines while maintaining academic integrity and learning objectives.
+=======
+# Telco_Churn_Prediction
+DMML_Assignment
+>>>>>>> d5638b41bf9a83091f314bec02b124e0377bf64e
