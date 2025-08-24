@@ -217,7 +217,7 @@ class DataIngestion:
         os.makedirs(RAW_DATA_DIR, exist_ok=True)
         
         # Check if data already exists to avoid re-downloading
-        telco_path = Path(RAW_DATA_DIR) / 'kaggle_data.csv'
+        telco_path = Path(RAW_DATA_DIR) / 'kaggle_churn.csv'
         hf_path = Path(RAW_DATA_DIR) / 'hf_data.csv'
         
         if telco_path.exists() and hf_path.exists():
