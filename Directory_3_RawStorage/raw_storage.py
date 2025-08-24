@@ -257,29 +257,114 @@ class RawDataStorage:
                 'status': 'error',
                 'error': str(e)
             }
+    
+    def store_ingested_data(self) -> Dict[str, Any]:
+        """
+        Store data from the ingestion module into organized storage structure.
+        
+        Returns:
+            Dict[str, Any]: Storage results for both datasets
+        """
+        try:
+            # Import the ingestion module
+            sys.path.append(str(Path(__file__).parent.parent / 'Directory_2_Ingestion'))
+            from ingestion import DataIngestion
+            
+            logger.info("Starting ingested data storage process")
+            
+            # Initialize ingestion
+            ingestion = DataIngestion()
+            
+            # Get the ingested data
+            telco_data, hf_data = ingestion.run_ingestion()
+            
+            # Store Kaggle/Telco data
+            kaggle_result = self.store_raw_data(
+                data=telco_data,
+                source='kaggle', 
+                data_type='telco_churn',
+                filename='telco_churn_data.csv'
+            )
+            
+            # Store Hugging Face data  
+            hf_result = self.store_raw_data(
+                data=hf_data,
+                source='huggingface',
+                data_type='churn_prediction', 
+                filename='hf_churn_data.csv'
+            )
+            
+            logger.info("Ingested data successfully stored in organized structure")
+            
+            return {
+                'status': 'success',
+                'kaggle_storage': kaggle_result,
+                'huggingface_storage': hf_result,
+                'summary': {
+                    'telco_shape': telco_data.shape,
+                    'hf_shape': hf_data.shape,
+                    'total_files_stored': 2
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to store ingested data: {e}")
+            return {
+                'status': 'error',
+                'error': str(e)
+            }
 
 def main():
-    """Main function to demonstrate raw data storage."""
+    """Main function to demonstrate raw data storage with ingestion integration."""
     try:
         storage = RawDataStorage()
         
         print("Raw Data Storage System initialized successfully!")
         print(f"Storage path: {storage.storage_path}")
         
-        # List stored data
+        # Store ingested data from the ingestion module
+        print("\n🔄 Storing ingested data from ingestion module...")
+        storage_result = storage.store_ingested_data()
+        
+        if storage_result['status'] == 'success':
+            print("✅ Ingested data stored successfully!")
+            print(f"Telco data shape: {storage_result['summary']['telco_shape']}")
+            print(f"HF data shape: {storage_result['summary']['hf_shape']}")
+            print(f"Total files stored: {storage_result['summary']['total_files_stored']}")
+            
+            # Show storage details
+            kaggle_info = storage_result['kaggle_storage']
+            hf_info = storage_result['huggingface_storage']
+            
+            print(f"\nKaggle data stored at: {kaggle_info['file_path']}")
+            print(f"HF data stored at: {hf_info['file_path']}")
+        else:
+            print(f"❌ Failed to store ingested data: {storage_result['error']}")
+        
+        # List all stored data
+        print("\n📋 Listing all stored data files...")
         stored_files = storage.list_stored_data()
         print(f"Number of stored files: {len(stored_files)}")
         
         if stored_files:
             print("Stored files:")
-            for file_info in stored_files[:5]:  # Show first 5
-                print(f"  - {file_info.get('filename', 'Unknown')} ({file_info.get('source', 'Unknown')})")
+            for file_info in stored_files:
+                source = file_info.get('source', 'Unknown')
+                filename = file_info.get('filename', 'Unknown')
+                size_mb = file_info.get('file_size_mb', 0)
+                print(f"  - {filename} ({source}) - {size_mb:.2f}MB")
         
         # Show folder structure
-        print(f"\nFolder structure:")
-        for item in storage.storage_path.rglob('*'):
+        print(f"\n📁 Folder structure:")
+        for item in sorted(storage.storage_path.rglob('*')):
             if item.is_dir():
-                print(f"  📁 {item.relative_to(storage.storage_path)}")
+                level = len(item.relative_to(storage.storage_path).parts)
+                indent = "  " * level
+                print(f"{indent}📁 {item.name}")
+            elif item.suffix == '.csv':
+                level = len(item.relative_to(storage.storage_path).parts)
+                indent = "  " * level
+                print(f"{indent}📄 {item.name}")
         
     except Exception as e:
         logger.error(f"Raw data storage demo failed: {e}")

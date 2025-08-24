@@ -19,6 +19,7 @@ from config import *
 
 # Import pipeline modules from their respective directories
 sys.path.append(str(INGESTION_DIR))
+sys.path.append(str(RAW_STORAGE_DIR))
 sys.path.append(str(VALIDATION_DIR))
 sys.path.append(str(PREPARATION_DIR))
 sys.path.append(str(TRANSFORMATION_DIR))
@@ -27,6 +28,7 @@ sys.path.append(str(VERSIONING_DIR))
 sys.path.append(str(MODEL_BUILDING_DIR))
 
 from ingestion import DataIngestion
+from raw_storage import RawDataStorage
 from validation import DataValidator
 from preparation import DataPreparation
 from transformation import DataTransformation
@@ -59,6 +61,32 @@ def main():
         ingestion = DataIngestion()
         telco_data, hf_data = ingestion.run_ingestion()
         logger.info("Data ingestion completed successfully")
+        
+        # Optional: Raw Data Storage (organized structure)
+        try:
+            logger.info("Optional: Storing data in organized raw storage structure")
+            raw_storage = RawDataStorage()
+            
+            # Store data in organized structure
+            kaggle_storage = raw_storage.store_raw_data(
+                data=telco_data,
+                source='kaggle', 
+                data_type='telco_churn',
+                filename='telco_churn_data.csv'
+            )
+            
+            hf_storage = raw_storage.store_raw_data(
+                data=hf_data,
+                source='huggingface',
+                data_type='churn_prediction', 
+                filename='hf_churn_data.csv'
+            )
+            
+            logger.info(f"Raw data stored successfully: Kaggle -> {kaggle_storage.get('file_path', 'Unknown')}")
+            logger.info(f"Raw data stored successfully: HF -> {hf_storage.get('file_path', 'Unknown')}")
+            
+        except Exception as storage_error:
+            logger.warning(f"Raw storage step failed (continuing pipeline): {storage_error}")
         
         # Stage 2: Data Validation
         logger.info("Stage 2: Data Validation")

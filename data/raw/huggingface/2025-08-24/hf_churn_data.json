@@ -1,0 +1,35 @@
+{
+  "source": "huggingface",
+  "data_type": "churn_prediction",
+  "filename": "hf_churn_data.csv",
+  "file_path": "/home/jupyter/DMML/churn_prediction_pipeline/data/raw/huggingface/2025-08-24/hf_churn_data.csv",
+  "storage_timestamp": "2025-08-24T07:38:22.929437",
+  "data_shape": [
+    7043,
+    21
+  ],
+  "columns": [
+    "customerID",
+    "gender",
+    "SeniorCitizen",
+    "Partner",
+    "Dependents",
+    "tenure",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod",
+    "MonthlyCharges",
+    "TotalCharges",
+    "Churn"
+  ],
+  "file_size_mb": 0.9262475967407227
+}

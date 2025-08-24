@@ -77,22 +77,58 @@ class DataIngestion:
             return False
     
     def ingest_kaggle_data(self) -> pd.DataFrame:
-        """Ingest data from Kaggle API with timeout and fallback."""
+        """Ingest data from Kaggle using kagglehub with timeout and fallback."""
         try:
             # Setup credentials
             if not self._setup_kaggle_credentials():
                 raise Exception("Failed to setup Kaggle credentials")
             
-            # Import kaggle only when needed
+            # Import kagglehub for modern API
+            try:
+                import kagglehub
+                from kagglehub import KaggleDatasetAdapter
+            except ImportError:
+                logger.warning("kagglehub not available, falling back to legacy kaggle API")
+                return self._ingest_kaggle_legacy()
+            
+            # Download dataset using kagglehub
+            logger.info(f"Downloading Kaggle dataset using kagglehub: {KAGGLE_DATASET}")
+            
+            try:
+                # Load dataset directly as pandas DataFrame
+                df = kagglehub.load_dataset(
+                    KaggleDatasetAdapter.PANDAS,
+                    KAGGLE_DATASET,
+                    "",  # Empty file_path to get the main dataset file
+                )
+                
+                logger.info(f"Kaggle data loaded successfully using kagglehub: {df.shape}")
+                logger.info(f"First 5 records:\n{df.head()}")
+                
+                # Save to raw data directory for pipeline consistency
+                output_path = RAW_DATA_DIR / "kaggle_churn.csv"
+                df.to_csv(output_path, index=False)
+                logger.info(f"Data saved to: {output_path}")
+                
+                return df
+                
+            except Exception as kagglehub_error:
+                logger.warning(f"kagglehub method failed: {kagglehub_error}")
+                logger.info("Falling back to legacy kaggle API")
+                return self._ingest_kaggle_legacy()
+                    
+        except Exception as e:
+            logger.warning(f"Kaggle data ingestion failed: {e}")
+            logger.info("Using existing Kaggle dataset as fallback")
+            return pd.read_csv(Path(RAW_DATA_DIR) / 'kaggle_churn.csv')
+    
+    def _ingest_kaggle_legacy(self) -> pd.DataFrame:
+        """Legacy Kaggle API ingestion method as fallback."""
+        try:
             import kaggle
             import signal
             
-            # Download dataset with timeout
-            logger.info(f"Downloading Kaggle dataset: {KAGGLE_DATASET}")
-            
-            # Set a reasonable timeout
-            original_timeout = os.environ.get('KAGGLE_TIMEOUT', None)
-            os.environ['KAGGLE_TIMEOUT'] = '15'  # Reduced to 15 seconds
+            logger.info("Using legacy Kaggle API for dataset download")
             
             def timeout_handler(signum, frame):
                 raise TimeoutError("Kaggle download timeout")
@@ -117,97 +153,47 @@ class DataIngestion:
                     raise Exception("No CSV files found after download")
                 
                 data = pd.read_csv(csv_files[0])
-                logger.info(f"Kaggle data loaded successfully: {data.shape}")
+                logger.info(f"Kaggle data loaded successfully via legacy API: {data.shape}")
                 return data
                 
             except (TimeoutError, Exception) as e:
                 signal.alarm(0)  # Cancel alarm
                 raise e
-                
-            finally:
-                if original_timeout:
-                    os.environ['KAGGLE_TIMEOUT'] = original_timeout
-                else:
-                    os.environ.pop('KAGGLE_TIMEOUT', None)
                     
         except Exception as e:
-            logger.warning(f"Kaggle data ingestion failed: {e}")
-            logger.info("Creating synthetic Kaggle data as fallback")
-            return self._create_synthetic_telco_data()
+            logger.warning(f"Kaggle data API ingestion failed: {e}")
+            logger.info("Using existing Kaggle dataset as fallback")
+            return pd.read_csv(Path(RAW_DATA_DIR) / 'kaggle_churn.csv')
     
     def ingest_huggingface_data(self) -> pd.DataFrame:
-        """Ingest data from Hugging Face with fallback."""
+        """Ingest data from Hugging Face using hf:// protocol with fallback."""
         try:
-            # Try to import and use datasets with timeout
-            logger.info(f"Loading Hugging Face dataset: {HUGGINGFACE_DATASET}")
+            logger.info(f"Loading Hugging Face dataset using hf:// protocol: {HUGGINGFACE_DATASET}")
             
-            # Use requests instead of datasets library to avoid hanging
-            # This is a simplified approach for testing
-            logger.warning("Using synthetic HF data due to import issues")
-            return self._create_synthetic_hf_data()
+            # Use modern hf:// protocol to load dataset directly
+            try:
+                df = pd.read_csv("hf://datasets/scikit-learn/churn-prediction/dataset.csv")
+                
+                logger.info(f"Hugging Face data loaded successfully using hf:// protocol: {df.shape}")
+                logger.info(f"First 5 records:\n{df.head()}")
+                
+                # Save to raw data directory for pipeline consistency
+                output_path = RAW_DATA_DIR / "hf_data.csv"
+                df.to_csv(output_path, index=False)
+                logger.info(f"HF data saved to: {output_path}")
+                
+                return df
+                
+            except Exception as hf_error:
+                logger.warning(f"hf:// protocol method failed: {hf_error}")
+                logger.info("Falling back to existing HF dataset")
+                return pd.read_csv(Path(RAW_DATA_DIR) / 'hf_data.csv')
             
         except Exception as e:
             logger.warning(f"Hugging Face data ingestion failed: {e}")
-            logger.info("Creating synthetic HF data as fallback")
-            return self._create_synthetic_hf_data()
-    
-    def _create_synthetic_telco_data(self) -> pd.DataFrame:
-        """Create synthetic telco customer data for testing."""
-        import numpy as np
-        
-        np.random.seed(42)
-        n_customers = 1000
-        
-        data = pd.DataFrame({
-            'customerID': [f'C{i:04d}' for i in range(n_customers)],
-            'gender': np.random.choice(['Male', 'Female'], n_customers),
-            'SeniorCitizen': np.random.choice([0, 1], n_customers, p=[0.8, 0.2]),
-            'Partner': np.random.choice(['Yes', 'No'], n_customers),
-            'Dependents': np.random.choice(['Yes', 'No'], n_customers),
-            'tenure': np.random.randint(1, 73, n_customers),
-            'PhoneService': np.random.choice(['Yes', 'No'], n_customers, p=[0.9, 0.1]),
-            'MultipleLines': np.random.choice(['Yes', 'No', 'No phone service'], n_customers),
-            'InternetService': np.random.choice(['DSL', 'Fiber optic', 'No'], n_customers),
-            'OnlineSecurity': np.random.choice(['Yes', 'No', 'No internet service'], n_customers),
-            'OnlineBackup': np.random.choice(['Yes', 'No', 'No internet service'], n_customers),
-            'DeviceProtection': np.random.choice(['Yes', 'No', 'No internet service'], n_customers),
-            'TechSupport': np.random.choice(['Yes', 'No', 'No internet service'], n_customers),
-            'StreamingTV': np.random.choice(['Yes', 'No', 'No internet service'], n_customers),
-            'StreamingMovies': np.random.choice(['Yes', 'No', 'No internet service'], n_customers),
-            'Contract': np.random.choice(['Month-to-month', 'One year', 'Two year'], n_customers),
-            'PaperlessBilling': np.random.choice(['Yes', 'No'], n_customers),
-            'PaymentMethod': np.random.choice([
-                'Electronic check', 'Mailed check', 
-                'Bank transfer (automatic)', 'Credit card (automatic)'
-            ], n_customers),
-            'MonthlyCharges': np.random.uniform(18.0, 120.0, n_customers),
-            'TotalCharges': np.random.uniform(18.0, 8500.0, n_customers),
-            'Churn': np.random.choice(['Yes', 'No'], n_customers, p=[0.27, 0.73])
-        })
-        
-        logger.info(f"Created synthetic telco data: {data.shape}")
-        return data
-    
-    def _create_synthetic_hf_data(self) -> pd.DataFrame:
-        """Create synthetic HF data for testing."""
-        import numpy as np
-        
-        np.random.seed(123)
-        n_records = 500
-        
-        data = pd.DataFrame({
-            'customer_id': [f'H{i:04d}' for i in range(n_records)],
-            'satisfaction_score': np.random.uniform(1.0, 5.0, n_records),
-            'usage_frequency': np.random.choice(['Low', 'Medium', 'High'], n_records),
-            'support_calls': np.random.randint(0, 10, n_records),
-            'feature_usage': np.random.uniform(0.0, 1.0, n_records),
-            'last_interaction_days': np.random.randint(1, 365, n_records),
-            'product_category': np.random.choice(['Basic', 'Premium', 'Enterprise'], n_records),
-            'churn_risk': np.random.choice(['Low', 'Medium', 'High'], n_records)
-        })
-        
-        logger.info(f"Created synthetic HF data: {data.shape}")
-        return data
+            logger.info("Using existing HF dataset as fallback")
+            return pd.read_csv(Path(RAW_DATA_DIR) / 'hf_data.csv')
+
     
     def run_ingestion(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Run complete data ingestion process."""
